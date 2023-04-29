@@ -13,7 +13,7 @@ test:
 
 build:
 	git pull origin main
-	docker build -t trade-bot .
+	docker build -t trade-bot2 .
 
 run:
-	docker run -d -t trade-bot
+	docker run -d -t trade-bot2
