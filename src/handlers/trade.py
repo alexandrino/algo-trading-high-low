@@ -1,8 +1,8 @@
 import pandas as pd
 
-from src.common.constants import SYMBOL, BTC_QTD, PROFIT_PERCENT, LOSS_PERCENT, INTERVAL, START_TIME
+from src.common.constants import SYMBOL, PROFIT_PERCENT, LOSS_PERCENT, INTERVAL, START_TIME
 from src.common.item import put_item, get_item
-from src.services.binance import client, create_market_order, create_order
+from src.services.binance import client, create_market_order
 from src.common.log import logger
 
 
@@ -24,22 +24,20 @@ def trade_by_sma():
     close = df['close']
 
     price = float(close.tail(1)[0])
-    last_period = close.tail(60)
+    last_period = close.tail(120)
     max_price_period = float(last_period.max())
-    # max_price_period = max_price_period - (max_price_period * 0.002)
     min_price_period = float(last_period.min())
     price_time = close.tail(1).index[0]
 
     open_order = get_item()
-    active_order = open_order.get('active', 0)
-
+    active_order = int(open_order.get('active', 0))
     open_order_price = float(open_order.get('buy_price', 0))
 
     stop_loss = open_order_price - (open_order_price * LOSS_PERCENT)
     profit = open_order_price + (open_order_price * PROFIT_PERCENT)
     future_profit = (price * PROFIT_PERCENT) + price
 
-    print({
+    logger.info({
         'time': str(price_time),
         'price': price,
         'max_price': max_price_period,
@@ -50,19 +48,19 @@ def trade_by_sma():
         'stop_loss': stop_loss
     })
 
-    if future_profit < max_price_period > price > min_price_period and active_order == 0:
-        put_item(2, price)
-        # create_market_order('BUY')
-        print('>BUY {}'.format(price))
+    if future_profit < max_price_period > price and active_order == 0:
+        put_item(1, price)
+        create_market_order('BUY')
+        logger.info('>BUY {}'.format(price))
 
-    if min_price_period < price > profit and active_order == 2:
-        print('>SELL {}'.format(price))
-        # create_market_order('SELL')
+    if min_price_period < price > profit and active_order == 1:
+        logger.info('>SELL {}'.format(price))
+        create_market_order('SELL')
         put_item(0, 0)
 
-    if stop_loss > price and active_order == 2:
-        print('>SELL LOSS {}'.format(price))
-        # create_market_order('SELL')
+    if stop_loss > price and active_order == 1:
+        logger.info('>SELL LOSS {}'.format(price))
+        create_market_order('SELL')
         put_item(0, 0)
 
     return True
