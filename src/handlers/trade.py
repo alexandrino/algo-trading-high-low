@@ -37,17 +37,6 @@ def trade_by_sma():
     profit = open_order_price + (open_order_price * PROFIT_PERCENT)
     future_profit = (price * PROFIT_PERCENT) + price
 
-    logger.info({
-        'time': str(price_time),
-        'price': price,
-        'max_price': max_price_period,
-        'min_price': min_price_period,
-        'profit': profit,
-        'future_profit': future_profit,
-        'order_price': open_order_price,
-        'stop_loss': stop_loss
-    })
-
     if future_profit < max_price_period > price and active_order == 0:
         put_item(1, price)
         create_market_order('BUY')
